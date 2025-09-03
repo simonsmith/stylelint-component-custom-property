@@ -89,6 +89,10 @@ describe('rule implementation', () => {
           }
         `,
       },
+      {
+        description: 'correct prefix in var() with fallback',
+        code: `.button { gap: var(--Button-spacing, 1rem); }`,
+      },
     ],
     reject: [
       {
@@ -106,6 +110,15 @@ describe('rule implementation', () => {
         warnings: [
           {
             message: messages.invalid('--color', '--Button', '--color'),
+          },
+        ],
+      },
+      {
+        description: 'wrong prefix in var() with fallback',
+        code: `.button { gap: var(--wrong-spacing, 1rem); }`,
+        warnings: [
+          {
+            message: messages.invalid('--wrong-spacing', '--Button', '--wrong'),
           },
         ],
       },
@@ -185,6 +198,20 @@ describe('rule implementation', () => {
           {
             message: messages.invalid(
               '--wrong-color',
+              '--SomeComponent',
+              '--wrong',
+            ),
+          },
+        ],
+      },
+      {
+        description: 'fix wrong prefix in var() with fallback',
+        code: `.container { gap: var(--wrong-spacing, 1rem); }`,
+        fixed: `.container { gap: var(--SomeComponent-spacing, 1rem); }`,
+        warnings: [
+          {
+            message: messages.invalid(
+              '--wrong-spacing',
               '--SomeComponent',
               '--wrong',
             ),

@@ -1,8 +1,5 @@
 import {test, expect, describe} from 'vitest'
-import {
-  isValidSuitCssProperty,
-  isValidCustomProperty,
-} from './validate.js'
+import {isValidSuitCssProperty, isValidCustomProperty} from './validate.js'
 
 describe('valid patterns', () => {
   test('basic properties', () => {
