@@ -133,8 +133,14 @@ describe('rule implementation', () => {
         description: 'multiple var()',
         code: `.button { border: var(--wrong-borderWidth, 1px) var(--Button-borderStyle, solid); }`,
         warnings: [
-          {message: messages.invalid('--wrong-borderWidth', '--Button', '--wrong')}
-        ]
+          {
+            message: messages.invalid(
+              '--wrong-borderWidth',
+              '--Button',
+              '--wrong',
+            ),
+          },
+        ],
       },
       {
         description: 'no prefix',

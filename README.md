@@ -108,7 +108,7 @@ Enforces [SUIT CSS naming conventions](https://github.com/suitcss/suit/blob/mast
 }
 ```
 
-Due to the potential ambiguity of the validation pattern in SUIT CSS this option prefers to lean on being more relaxed rather than incorrectly 
+Due to the potential ambiguity of the validation pattern in SUIT CSS this option prefers to lean on being more relaxed rather than incorrectly
 flagging properties as invalid.
 
 ### Custom pattern validation
