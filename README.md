@@ -29,7 +29,7 @@ Stylelint plugin that validates CSS custom properties in CSS modules to ensure t
 
 ## Why?
 
-When working with CSS modules, it's common to use custom properties (CSS variables) that are scoped to a specific component. This plugin enforces a naming convention where custom properties must be prefixed with the component name derived from the CSS module filename.
+When working with CSS modules, it's common to use custom properties that are scoped to a specific component. This plugin enforces a naming convention where custom properties must be prefixed with the component name derived from the CSS module filename.
 
 For example, if your CSS module is named `Button.module.css`, all custom properties should be prefixed with `--Button-`:
 
@@ -40,14 +40,21 @@ For example, if your CSS module is named `Button.module.css`, all custom propert
 }
 ```
 
+The validation is also applied to declaring custom properties with a fallback as this is seen as providing an API that is designed to be overridden:
+
+```css
+.button {
+  background-color: var(--Button-primary-color, #007bff);
+}
+```
+
+See [how it works](#how-it-works) for more
+
 This convention helps with:
 
 - **Consistency**: All custom properties follow the same naming pattern
 - **Clarity**: It's immediately clear which component a custom property belongs to
 - **Avoiding conflicts**: Prevents naming collisions when components are nested or used together, since CSS custom properties inherit through the DOM tree
-
-In the future it's likely that this plugin can also be extended to optionally support the
-[SUIT CSS naming conventions](https://github.com/suitcss/suit/blob/master/doc/naming-conventions.md#variables).
 
 ## Installation
 
@@ -95,7 +102,7 @@ Validates only that custom properties match the component name from the filename
 
 ### SUIT CSS validation
 
-Enforces [SUIT CSS naming conventions](https://github.com/suitcss/suit/blob/master/doc/naming-conventions.md#variables):
+Validates [SUIT CSS naming conventions](https://github.com/suitcss/suit/blob/master/doc/naming-conventions.md#variables):
 
 ```json
 {
@@ -109,7 +116,7 @@ Enforces [SUIT CSS naming conventions](https://github.com/suitcss/suit/blob/mast
 ```
 
 Due to the potential ambiguity of the validation pattern in SUIT CSS this option prefers to lean on being more relaxed rather than incorrectly
-flagging properties as invalid.
+flagging properties as invalid. See [the unit tests](https://github.com/simonsmith/stylelint-custom-property-prefix/blob/e8022cc57466d91de8d868781816a080855d17dd/src/validate.test.ts#L21-L43) for what it covers currently
 
 ### Custom pattern validation
 
@@ -140,11 +147,9 @@ Use your own regular expression for suffix validation:
 
 The plugin:
 
-1. **Only applies to CSS modules** - files ending with `.module.css`
-2. **Extracts component name** - converts the filename to PascalCase (e.g., `user-profile.module.css` → `UserProfile`)
-3. **Validates custom properties** - ensures they start with `--ComponentName-` (see below)
-4. **Provides autofix** - can automatically correct invalid prefixes
-5. **Warns about filename format** - suggests renaming files that aren't already in PascalCase
+_. **Only applies to CSS modules** - files ending with `.module.css`
+_. **Validates custom properties** - ensures they start with `--ComponentName-`
+\*. **Autofix** - can automatically correct invalid prefixes
 
 ### What gets validated
 
