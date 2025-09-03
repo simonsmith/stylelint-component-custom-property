@@ -6,10 +6,19 @@ describe('isValidCustomProperty (default)', () => {
     expect(isValidCustomProperty('--Button-color', 'Button')).toBe(true)
     expect(isValidCustomProperty('--Button-Color', 'Button')).toBe(true)
     expect(isValidCustomProperty('--Button-123', 'Button')).toBe(true)
-    expect(isValidCustomProperty('--Button', 'Button')).toBe(true)
     expect(
       isValidCustomProperty('--UserProfile-avatar-size', 'UserProfile'),
     ).toBe(true)
+  })
+
+  test('rejects bare component name without suffix', () => {
+    expect(isValidCustomProperty('--Button', 'Button')).toBe(false)
+    expect(isValidCustomProperty('--Button-', 'Button')).toBe(false)
+  })
+
+  test('rejects component name not followed by hyphen', () => {
+    expect(isValidCustomProperty('--Buttonsdfs-color', 'Button')).toBe(false)
+    expect(isValidCustomProperty('--Buttonextra', 'Button')).toBe(false)
   })
 
   test('rejects wrong component names', () => {
@@ -18,7 +27,7 @@ describe('isValidCustomProperty (default)', () => {
   })
 })
 
-describe('isValidSuitCssProperty (strict SUIT CSS)', () => {
+describe('isValidSuitCssProperty', () => {
   test('accepts basic valid patterns', () => {
     expect(isValidSuitCssProperty('--Button-color', 'Button')).toBe(true)
     expect(isValidSuitCssProperty('--Button-icon-size', 'Button')).toBe(true)

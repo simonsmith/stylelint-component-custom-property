@@ -222,7 +222,7 @@ describe('rule implementation', () => {
     accept: [
       {
         description: 'works with the default option',
-        code: `.button { --Component: red; }`,
+        code: `.button { --Component-something: red; }`,
       },
     ],
   })

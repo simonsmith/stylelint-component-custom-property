@@ -12,12 +12,13 @@ export function isValidCustomProperty(
   }
 
   const {pattern} = config
-
-  if (!pattern) {
-    return true
-  }
-
   const afterComponent = property.slice(`--${componentName}`.length)
+
+  // ensures the component has a hyphen at the end and that we also have
+  // some text there, just `--Component: red` is not allowed
+  if (!pattern) {
+    return afterComponent.startsWith('-') && afterComponent.length > 1
+  }
 
   return pattern.test(afterComponent)
 }
