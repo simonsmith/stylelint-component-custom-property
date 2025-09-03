@@ -1,7 +1,7 @@
 {
   "name": "@simonsmith/stylelint-custom-property-prefix",
   "version": "0.1.0",
-  "description": "Validate a CSS module custom property prefix based on the filename",
+  "description": "Stylelint plugin that validates CSS custom properties in CSS modules to ensure they follow a component-based naming convention.",
   "repository": {
     "type": "git",
     "url": "https://github.com/simonsmith/stylelint-custom-property-prefix"
@@ -24,6 +24,7 @@
   ],
   "scripts": {
     "build": "tsc",
+    "docs": "doctoc README.md --no-title",
     "chk": "prettier --check .",
     "fmt": "prettier --write .",
     "typecheck": "tsc --noEmit",
@@ -34,6 +35,7 @@
     "@tsconfig/node22": "^22.0.2",
     "@tsconfig/strictest": "^2.0.5",
     "@types/node": "^22.16.0",
+    "doctoc": "^2.2.1",
     "prettier": "^3.6.2",
     "stylelint": "^16.23.1",
     "typescript": "^5.9.2",
