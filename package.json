@@ -28,7 +28,7 @@
     "chk": "prettier --check .",
     "fmt": "prettier --write .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest"
+    "test": "vitest run"
   },
   "devDependencies": {
     "@morev/stylelint-testing-library": "^1.0.2",

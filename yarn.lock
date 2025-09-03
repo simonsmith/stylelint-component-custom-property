@@ -510,9 +510,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@simonsmith/stylelint-custom-property-prefix@workspace:.":
+"@simonsmith/stylelint-component-custom-property@workspace:.":
   version: 0.0.0-use.local
-  resolution: "@simonsmith/stylelint-custom-property-prefix@workspace:."
+  resolution: "@simonsmith/stylelint-component-custom-property@workspace:."
   dependencies:
     "@morev/stylelint-testing-library": "npm:^1.0.2"
     "@tsconfig/node22": "npm:^22.0.2"
