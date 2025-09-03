@@ -1,4 +1,4 @@
-# @simonsmith/stylelint-custom-property-prefix
+# stylelint-component-custom-property
 
 Stylelint plugin that validates CSS custom properties in CSS modules to ensure they follow a component-based naming convention.
 
@@ -44,15 +44,15 @@ In the future it's likely that this plugin can also be extended to optionally su
 ## Installation
 
 ```bash
-npm install --save-dev @simonsmith/stylelint-custom-property-prefix
+npm install --save-dev @simonsmith/stylelint-component-custom-property
 ```
 
 ```bash
-yarn add --dev @simonsmith/stylelint-custom-property-prefix
+yarn add --dev @simonsmith/stylelint-component-custom-property
 ```
 
 ```bash
-pnpm add --save-dev @simonsmith/stylelint-custom-property-prefix
+pnpm add --save-dev @simonsmith/stylelint-component-custom-property
 ```
 
 ## Usage
@@ -61,9 +61,9 @@ Add the plugin to your stylelint configuration:
 
 ```json
 {
-  "plugins": ["@simonsmith/stylelint-custom-property-prefix"],
+  "plugins": ["@simonsmith/stylelint-component-custom-property"],
   "rules": {
-    "@simonsmith/stylelint-custom-property-prefix": true
+    "@simonsmith/stylelint-component-custom-property": true
   }
 }
 ```

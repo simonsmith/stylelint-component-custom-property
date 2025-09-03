@@ -9,7 +9,7 @@ const {
   utils: {report, ruleMessages, validateOptions},
 } = stylelint
 
-const ruleName = '@simonsmith/stylelint-custom-property-prefix'
+const ruleName = '@simonsmith/stylelint-component-custom-property'
 
 const messages = ruleMessages(ruleName, {
   invalid: (property: string, expected: string, actual: string) =>
@@ -19,7 +19,7 @@ const messages = ruleMessages(ruleName, {
 })
 
 const meta: RuleMeta = {
-  url: 'https://github.com/simonsmith/stylelint-custom-property-prefix',
+  url: 'https://github.com/simonsmith/stylelint-component-custom-property',
   fixable: true,
 }
 
