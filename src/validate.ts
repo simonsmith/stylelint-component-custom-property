@@ -11,11 +11,13 @@ export function isValidCustomProperty(
     return false
   }
 
-  const afterComponent = property.slice(`--${componentName}`.length)
+  const {pattern} = config
 
-  const pattern =
-    config.pattern ||
-    /^(?:-[a-z][a-zA-Z]*)*(?:--[a-z][a-zA-Z]*)*(?:-on[A-Z][a-zA-Z]*)*-[a-z][a-zA-Z]*$/
+  if (!pattern) {
+    return true
+  }
+
+  const afterComponent = property.slice(`--${componentName}`.length)
 
   return pattern.test(afterComponent)
 }
@@ -24,5 +26,11 @@ export function isValidSuitCssProperty(
   property: string,
   componentName: string,
 ) {
-  return isValidCustomProperty(property, componentName)
+  /**
+   * SUITCSS: --ComponentName[-descendant|--modifier][-onState]-(cssProperty|variableName)
+   */
+  const pattern =
+    /^(?:-[a-z][a-zA-Z]*)*(?:--[a-z][a-zA-Z]*)*(?:-on[A-Z][a-zA-Z]*)*-[a-z][a-zA-Z]*$/
+
+  return isValidCustomProperty(property, componentName, {pattern})
 }
