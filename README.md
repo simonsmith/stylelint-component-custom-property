@@ -8,6 +8,11 @@ Stylelint plugin that validates CSS custom properties in CSS modules to ensure t
 - [Why?](#why)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Configuration](#configuration)
+  - [Basic validation (default)](#basic-validation-default)
+  - [SUIT CSS validation](#suit-css-validation)
+  - [Custom pattern validation](#custom-pattern-validation)
+  - [Disable the rule](#disable-the-rule)
 - [How it works](#how-it-works)
   - [What gets validated](#what-gets-validated)
     - [Direct assignments](#direct-assignments)
@@ -17,7 +22,6 @@ Stylelint plugin that validates CSS custom properties in CSS modules to ensure t
   - [Valid](#valid)
   - [Invalid](#invalid)
   - [Filename warnings](#filename-warnings)
-- [Configuration](#configuration)
 - [Autofix](#autofix)
 - [License](#license)
 
@@ -68,6 +72,66 @@ Add the plugin to your stylelint configuration:
   "plugins": ["@simonsmith/stylelint-component-custom-property"],
   "rules": {
     "@simonsmith/stylelint-component-custom-property": true
+  }
+}
+```
+
+## Configuration
+
+The rule accepts different validation types:
+
+### Basic validation (default)
+
+Validates only that custom properties match the component name from the filename:
+
+```json
+{
+  "plugins": ["@simonsmith/stylelint-component-custom-property"],
+  "rules": {
+    "@simonsmith/stylelint-component-custom-property": true
+  }
+}
+```
+
+### SUIT CSS validation
+
+Enforces [SUIT CSS naming conventions](https://github.com/suitcss/suit/blob/master/doc/naming-conventions.md#variables):
+
+```json
+{
+  "plugins": ["@simonsmith/stylelint-component-custom-property"],
+  "rules": {
+    "@simonsmith/stylelint-component-custom-property": {
+      "validationType": "suitcss"
+    }
+  }
+}
+```
+
+Due to the potential ambiguity of the validation pattern in SUIT CSS this option prefers to lean on being more relaxed rather than incorrectly 
+flagging properties as invalid.
+
+### Custom pattern validation
+
+Use your own regular expression for suffix validation:
+
+```json
+{
+  "plugins": ["@simonsmith/stylelint-component-custom-property"],
+  "rules": {
+    "@simonsmith/stylelint-component-custom-property": {
+      "validationType": /^-[a-z][a-zA-Z]*$/
+    }
+  }
+}
+```
+
+### Disable the rule
+
+```json
+{
+  "rules": {
+    "@simonsmith/stylelint-component-custom-property": false
   }
 }
 ```
@@ -185,13 +249,6 @@ If your CSS module filename isn't in PascalCase, you'll get a warning:
   --UserProfile-avatar-size: 50px; /* Valid property, but filename warning */
 }
 ```
-
-## Configuration
-
-The rule accepts a boolean value:
-
-- `true` - Enable the rule
-- `null` or `false` - Disable the rule
 
 ## Autofix
 
