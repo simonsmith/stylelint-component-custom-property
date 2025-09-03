@@ -1,7 +1,7 @@
 import stylelint from 'stylelint'
 import {pascalCase} from 'es-toolkit/string'
 import path from 'path'
-import {isValidCustomProperty} from './validate.js'
+import {isValidCustomProperty, isValidSuitCssProperty} from './validate.js'
 import type {Rule, PostcssResult, RuleMeta} from 'stylelint'
 import type {Root, Declaration} from 'postcss'
 
@@ -17,6 +17,8 @@ const messages = ruleMessages(ruleName, {
     `Custom property "${property}" should start with "${expected}" but starts with "${actual}"`,
   filenameWarning: (filename: string, componentName: string) =>
     `"${filename}" converted to PascalCase component name "${componentName}". This file should be renamed`,
+  invalidSuitCss: (property: string, reason: string) =>
+    `Custom property "${property}" does not follow SUIT CSS naming convention: ${reason}`,
 })
 
 const meta: RuleMeta = {
@@ -25,20 +27,49 @@ const meta: RuleMeta = {
 }
 
 // matches var() functions with fallbacks like: var(--Button-spacing, 1rem)
-const VAR_WITH_FALLBACK = /var\((--[^,)]+),\s*[^)]+\)/g
+const VAR_FALLBACK = /var\((--[^,)]+),\s*[^)]+\)/g
 // matches the prefix part of custom properties like: --Button from --Button-color
 const CUSTOM_PROPERTY_PREFIX = /^--[^-]*/
 // matches everything after the component prefix like: -color from --Button-color
 const CUSTOM_PROPERTY_SUFFIX = /^--[^-]*-?/
 
-const ruleFunction: Rule = (primary: Rule<boolean>) => {
+type PluginConfigObject = {
+  validationType?: 'default' | 'suitcss' | RegExp
+}
+
+type PluginConfig = PluginConfigObject | boolean
+
+const ruleFunction: Rule = (primary: PluginConfig = true) => {
   return (root: Root, result: PostcssResult) => {
     const validOptions = validateOptions(result, ruleName, {
       actual: primary,
-      possible: [true, false],
+      possible: (value: unknown) => {
+        if (typeof value === 'boolean') {
+          return true
+        }
+        if (typeof value !== 'object' || value === null) {
+          return false
+        }
+        // we can be sure it's definitely an object now
+        const config = value as PluginConfigObject
+        const {validationType} = config
+
+        return (
+          validationType === 'default' ||
+          validationType === 'suitcss' ||
+          validationType instanceof RegExp
+        )
+      },
     })
 
-    if (!validOptions || !primary) {
+    if (!validOptions) {
+      return
+    }
+
+    const config =
+      typeof primary === 'boolean' ? (primary ? {} : null) : primary
+
+    if (!config) {
       return
     }
 
@@ -47,7 +78,7 @@ const ruleFunction: Rule = (primary: Rule<boolean>) => {
       return
     }
 
-    const componentInfo = getComponentName(filePath)
+    const componentInfo = getComponentInfo(filePath)
     if (!componentInfo) {
       return
     }
@@ -55,6 +86,9 @@ const ruleFunction: Rule = (primary: Rule<boolean>) => {
     const {componentName, filename, isAlreadyValid} = componentInfo
     const expectedPrefix = `--${componentName}`
 
+    // if the file name matches the component after we've 'pascaled' it then we
+    // can proceed but it's worth warning the user that they need to update the
+    // CSS filename
     if (!isAlreadyValid) {
       report({
         result,
@@ -65,9 +99,13 @@ const ruleFunction: Rule = (primary: Rule<boolean>) => {
       })
     }
 
+    const {validationType = 'default'} = config
+
     root.walkDecls((decl: Declaration) => {
       const {prop, value} = decl
 
+      // here we're assuming this is the "Direct assignment" part of the flow
+      // i.e the user is doing something like `:root { --Component-color: red; }`
       if (prop.startsWith('--')) {
         validateCustomProperty({
           property: prop,
@@ -75,10 +113,16 @@ const ruleFunction: Rule = (primary: Rule<boolean>) => {
           expectedPrefix,
           decl,
           result,
+          validationType,
           isVar: false,
         })
       }
 
+      // this one is for the "Fallback declarations" path and would be
+      // something like `.root { color: var(--Component-color, red) }`
+      //
+      // we gather all the variables from the declaration as a user can create
+      // multiple
       const fallbackVars = extractFallbackVars(value)
       fallbackVars.forEach((customProp) => {
         if (!customProp) {
@@ -91,6 +135,7 @@ const ruleFunction: Rule = (primary: Rule<boolean>) => {
           expectedPrefix,
           decl,
           result,
+          validationType,
           isVar: true,
         })
       })
@@ -102,7 +147,7 @@ ruleFunction.ruleName = ruleName
 ruleFunction.messages = messages
 ruleFunction.meta = meta
 
-function getComponentName(filepath: string) {
+function getComponentInfo(filepath: string) {
   const basename = path.basename(filepath)
 
   if (!basename.endsWith('.module.css')) {
@@ -120,7 +165,7 @@ function getComponentName(filepath: string) {
 }
 
 function extractFallbackVars(value: string) {
-  const fallbackVarRegex = VAR_WITH_FALLBACK
+  const fallbackVarRegex = VAR_FALLBACK
   const matches = []
   let match
 
@@ -137,6 +182,7 @@ type ValidateCustomPropertyConfig = {
   expectedPrefix: string
   decl: Declaration
   result: PostcssResult
+  validationType: 'default' | 'suitcss' | RegExp
   isVar?: boolean
 }
 
@@ -147,15 +193,31 @@ function validateCustomProperty(config: ValidateCustomPropertyConfig) {
     expectedPrefix,
     decl,
     result,
+    validationType,
     isVar = false,
   } = config
 
-  if (isValidCustomProperty(property, componentName)) {
+  let isValid = false
+
+  if (validationType === 'default') {
+    isValid = isValidCustomProperty(property, componentName)
+  }
+  if (validationType === 'suitcss') {
+    isValid = isValidSuitCssProperty(property, componentName)
+  }
+  if (validationType instanceof RegExp) {
+    isValid = isValidCustomProperty(property, componentName, {
+      pattern: validationType,
+    })
+  }
+
+  if (isValid) {
     return
   }
 
   const actualPrefix = property.match(CUSTOM_PROPERTY_PREFIX)?.[0] || property
 
+  // if it's not valid at this point we can easily fix it
   report({
     result,
     ruleName,

@@ -30,6 +30,18 @@ describe('rule configuration', () => {
         description: 'rule disabled',
         config: null,
       },
+      {
+        description: 'allows "default"',
+        config: {validationType: 'default'},
+      },
+      {
+        description: 'allows "suitcss"',
+        config: {validationType: 'suitcss'},
+      },
+      {
+        description: 'allows custom regex',
+        config: {validationType: /some-regex/},
+      },
     ],
     reject: [
       {
@@ -39,6 +51,15 @@ describe('rule configuration', () => {
       {
         description: 'number instead of boolean',
         config: 123,
+      },
+      {
+        description: 'regex directly',
+        config: /some-regex/,
+      },
+
+      {
+        description: 'empty object',
+        config: {},
       },
     ],
   })
@@ -93,6 +114,10 @@ describe('rule implementation', () => {
         description: 'correct prefix in var() with fallback',
         code: `.button { gap: var(--Button-spacing, 1rem); }`,
       },
+      {
+        description: 'multiple var()',
+        code: `.button { border: var(--Button-borderWidth, 1px) var(--Button-borderStyle, solid); }`,
+      },
     ],
     reject: [
       {
@@ -103,6 +128,13 @@ describe('rule implementation', () => {
             message: messages.invalid('--wrong-color', '--Button', '--wrong'),
           },
         ],
+      },
+      {
+        description: 'multiple var()',
+        code: `.button { border: var(--wrong-borderWidth, 1px) var(--Button-borderStyle, solid); }`,
+        warnings: [
+          {message: messages.invalid('--wrong-borderWidth', '--Button', '--wrong')}
+        ]
       },
       {
         description: 'no prefix',
@@ -121,6 +153,70 @@ describe('rule implementation', () => {
             message: messages.invalid('--wrong-spacing', '--Button', '--wrong'),
           },
         ],
+      },
+    ],
+  })
+
+  // TODO: the messaging on this test is a bit weird. It probably needs some
+  // additional work to actually create something meaningful - but for now I've
+  // left it as is
+  testRule({
+    description: 'suitcss option',
+    config: {validationType: 'suitcss'},
+    codeFilename: 'Component.module.css',
+    reject: [
+      {
+        description: 'custom property that only passes in suitcss',
+        code: `.button { --Component: red; }`,
+        warnings: [
+          {
+            message: messages.invalid(
+              '--Component',
+              '--Component',
+              '--Component',
+            ),
+          },
+        ],
+      },
+    ],
+  })
+
+  // TODO: this one also has bad error messaging for now - needs works
+  testRule({
+    description: 'custom regex option',
+    config: {validationType: /^_[a-z][a-zA-Z]*$/},
+    codeFilename: 'Component.module.css',
+    accept: [
+      {
+        description: 'works with a custom regex',
+        code: `.button { --Component_test: red; }`,
+      },
+    ],
+    reject: [
+      {
+        description: 'works with a custom regex',
+        code: `.button { --Component-test: red; }`,
+        warnings: [
+          {
+            message: messages.invalid(
+              '--Component-test',
+              '--Component',
+              '--Component',
+            ),
+          },
+        ],
+      },
+    ],
+  })
+
+  testRule({
+    description: 'default option',
+    config: {validationType: 'default'},
+    codeFilename: 'Component.module.css',
+    accept: [
+      {
+        description: 'works with the default option',
+        code: `.button { --Component: red; }`,
       },
     ],
   })
