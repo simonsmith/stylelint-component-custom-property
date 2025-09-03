@@ -9,6 +9,10 @@ Stylelint plugin that validates CSS custom properties in CSS modules to ensure t
 - [Installation](#installation)
 - [Usage](#usage)
 - [How it works](#how-it-works)
+  - [What gets validated](#what-gets-validated)
+    - [Direct assignments](#direct-assignments)
+    - [Fallback declarations](#fallback-declarations)
+    - [What's ignored](#whats-ignored)
 - [Examples](#examples)
   - [Valid](#valid)
   - [Invalid](#invalid)
@@ -74,9 +78,59 @@ The plugin:
 
 1. **Only applies to CSS modules** - files ending with `.module.css`
 2. **Extracts component name** - converts the filename to PascalCase (e.g., `user-profile.module.css` → `UserProfile`)
-3. **Validates custom properties** - ensures they start with `--ComponentName-`
+3. **Validates custom properties** - ensures they start with `--ComponentName-` (see below)
 4. **Provides autofix** - can automatically correct invalid prefixes
 5. **Warns about filename format** - suggests renaming files that aren't already in PascalCase
+
+### What gets validated
+
+The plugin validates custom properties in two specific scenarios:
+
+#### Direct assignments
+
+Direct custom property usage is always validated:
+
+```css
+:root {
+  --Button-color: red;
+  --Button-padding: 1rem;
+}
+```
+
+#### Fallback declarations
+
+Custom properties used in `var()` functions **with fallback values** are treated as component API declarations:
+
+```css
+.container {
+  gap: var(--Button-spacing, 1rem);
+  width: var(--Button-max-width, 320px);
+}
+```
+
+This usage allows a user to override the custom properties from a parent
+component
+
+```css
+/* parent component can override `Button` spacing */
+.parent {
+  --Button-spacing: 2rem;
+  --Button-max-width: 400px;
+}
+```
+
+This distinction ensures the plugin only validates properties that are being "declared" as part of the component's API, rather than properties being consumed from elsewhere.
+
+#### What's ignored
+
+Custom properties used without fallbacks are considered consumption of existing properties and are ignored:
+
+```css
+.button {
+  color: var(--theme-primary);
+  margin: var(--Button-spacing);
+}
+```
 
 ## Examples
 
@@ -95,6 +149,12 @@ The plugin:
 .button {
   color: var(--some-global-color);
 }
+
+/* API declarations with fallbacks are validated */
+.container {
+  gap: var(--Button-spacing, 1rem);
+  max-width: var(--Button-max-width, 320px);
+}
 ```
 
 ### Invalid
@@ -105,6 +165,12 @@ The plugin:
 .button {
   --wrong-color: red; /* Should be --Button-color */
   --color: blue; /* Should be --Button-color */
+}
+
+/* Invalid prefixes in var() with fallbacks */
+.container {
+  gap: var(--wrong-spacing, 1rem); /* Should be --Button-spacing */
+  width: var(--Container-width, 100%); /* Should be --Button-width */
 }
 ```
 
