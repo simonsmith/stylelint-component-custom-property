@@ -44,6 +44,10 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
 
     steps:
       - name: Checkout code
