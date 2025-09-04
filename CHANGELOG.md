@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/simonsmith/stylelint-component-custom-property/compare/1.0.0...1.0.1) (2025-09-04)
+
+
+### Bug Fixes
+
+* ensure package files are built ([f1ee091](https://github.com/simonsmith/stylelint-component-custom-property/commit/f1ee0918427726fbc29702eb438b24700cf58326))
+
 # 1.0.0 (2025-09-04)
 
 
