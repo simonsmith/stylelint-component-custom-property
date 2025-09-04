@@ -92,6 +92,27 @@ describe('rule implementation', () => {
         `,
       },
       {
+        description: 'more examples',
+        code: `
+          .container {
+            margin-block: var(--Button-margin-block, 12px);
+            margin-inline: var(--Button-margin-inline, auto);
+          }
+
+          .sidebar {
+            --Button-sidebar-width: 280px;
+          }
+
+          .item.sidebar {
+            max-inline-size: var(
+              --Button-sidebar-max-inline,
+              calc(var(--Button-sidebar-width) + var(--Button-gap) * 2)
+            );
+            min-inline-size: var(--Button-sidebar-min-width, var(--Button-sidebar-width));
+          }
+        `,
+      },
+      {
         description: 'ignores custom properties used as values',
         code: `
         .root {
