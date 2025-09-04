@@ -150,9 +150,9 @@ Use your own regular expression for suffix validation:
 
 The plugin:
 
-_. **Only applies to CSS modules** - files ending with `.module.css`
-_. **Validates custom properties** - ensures they start with `--ComponentName-`
-\*. **Autofix** - can automatically correct invalid prefixes
+- **Only applies to CSS modules** - files ending with `.module.css`
+- **Validates custom properties** - ensures they start with `--ComponentName-`
+- **Autofix** - can automatically correct invalid prefixes
 
 ### What gets validated
 
