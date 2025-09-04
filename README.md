@@ -2,6 +2,9 @@
 
 Stylelint plugin that validates CSS custom properties in CSS modules to ensure they follow a component-based naming convention.
 
+![npm version](https://img.shields.io/npm/v/@simonsmith/stylelint-component-custom-property)
+![CI](https://github.com/simonsmith/stylelint-component-custom-property/actions/workflows/ci.yml/badge.svg)
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
