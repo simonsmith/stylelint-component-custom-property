@@ -1,6 +1,6 @@
 {
   "name": "@simonsmith/stylelint-component-custom-property",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Stylelint plugin that validates CSS custom properties in CSS modules to ensure they follow a component-based naming convention.",
   "publishConfig": {
     "access": "public"

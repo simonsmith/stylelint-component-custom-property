@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/simonsmith/stylelint-component-custom-property/compare/2.0.0...2.1.0) (2025-09-08)
+
+
+### Features
+
+* remove file name warnings ([d2fb6ed](https://github.com/simonsmith/stylelint-component-custom-property/commit/d2fb6edafa9fe7bfa3b975db788629e6cdc78874))
+
 # [2.0.0](https://github.com/simonsmith/stylelint-component-custom-property/compare/1.0.1...2.0.0) (2025-09-08)
 
 
