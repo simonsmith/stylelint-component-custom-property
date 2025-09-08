@@ -102,27 +102,10 @@ const ruleFunction: Rule = (primary: PluginConfig = true) => {
     const {validationType = 'default'} = config
 
     root.walkDecls((decl: Declaration) => {
-      const {prop, value} = decl
+      const {value} = decl
 
-      // here we're assuming this is the "Direct assignment" part of the flow
-      // i.e the user is doing something like `:root { --Component-color: red; }`
-      if (prop.startsWith('--')) {
-        validateCustomProperty({
-          property: prop,
-          componentName,
-          expectedPrefix,
-          decl,
-          result,
-          validationType,
-          isVar: false,
-        })
-      }
-
-      // this one is for the "Fallback declarations" path and would be
-      // something like `.root { color: var(--Component-color, red) }`
-      //
-      // we gather all the variables from the declaration as a user can create
-      // multiple
+      // Only validate API declarations - var() functions with fallbacks
+      // These represent the component's public interface that can be overridden
       const fallbackVars = extractFallbackVars(value)
       fallbackVars.forEach((customProp) => {
         if (!customProp) {
@@ -136,7 +119,6 @@ const ruleFunction: Rule = (primary: PluginConfig = true) => {
           decl,
           result,
           validationType,
-          isVar: true,
         })
       })
     })
@@ -183,7 +165,6 @@ type ValidateCustomPropertyConfig = {
   decl: Declaration
   result: PostcssResult
   validationType: 'default' | 'suitcss' | RegExp
-  isVar?: boolean
 }
 
 function validateCustomProperty(config: ValidateCustomPropertyConfig) {
@@ -194,7 +175,6 @@ function validateCustomProperty(config: ValidateCustomPropertyConfig) {
     decl,
     result,
     validationType,
-    isVar = false,
   } = config
 
   let isValid = false
@@ -217,7 +197,7 @@ function validateCustomProperty(config: ValidateCustomPropertyConfig) {
 
   const actualPrefix = property.match(CUSTOM_PROPERTY_PREFIX)?.[0] || property
 
-  // if it's not valid at this point we can easily fix it
+  // Fix by replacing the property name in the var() function
   report({
     result,
     ruleName,
@@ -226,11 +206,7 @@ function validateCustomProperty(config: ValidateCustomPropertyConfig) {
     fix() {
       const suffix = property.replace(CUSTOM_PROPERTY_SUFFIX, '')
       const correctedProp = `--${componentName}-${suffix}`
-      if (isVar) {
-        decl.value = decl.value.replace(property, correctedProp)
-      } else {
-        decl.prop = correctedProp
-      }
+      decl.value = decl.value.replace(property, correctedProp)
     },
   })
 }

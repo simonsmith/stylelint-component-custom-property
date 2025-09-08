@@ -69,7 +69,7 @@ describe('rule implementation', () => {
   const testRule = createTestRule({ruleName})
 
   testRule({
-    description: 'valid custom properties',
+    description: 'valid API declarations',
     config: true,
     codeFilename: 'Button.module.css',
     accept: [
@@ -78,31 +78,18 @@ describe('rule implementation', () => {
         code: `.button { color: red; background: blue; }`,
       },
       {
-        description: 'correct prefix',
-        code: `.button { --Button-color: red; }`,
-      },
-      {
-        description: 'multiple correct properties',
-        code: `
-          .button {
-            --Button-primary: #007bff;
-            --Button-secondary: #6c757d;
-            --Button-padding: 0.5rem 1rem;
-          }
-        `,
-      },
-      {
-        description: 'more examples',
+        description: 'API declarations with correct prefix',
         code: `
           .container {
             margin-block: var(--Button-margin-block, 12px);
             margin-inline: var(--Button-margin-inline, auto);
+            gap: var(--Button-spacing, 1rem);
           }
-
-          .sidebar {
-            --Button-sidebar-width: 280px;
-          }
-
+        `,
+      },
+      {
+        description: 'complex API declarations',
+        code: `
           .item.sidebar {
             max-inline-size: var(
               --Button-sidebar-max-inline,
@@ -113,46 +100,39 @@ describe('rule implementation', () => {
         `,
       },
       {
-        description: 'ignores custom properties used as values',
+        description: 'var() without fallback (ignored)',
         code: `
         .root {
           color: var(--some-other-value);
+          margin: var(--Button-spacing);
         }
         `,
       },
       {
-        description: 'accepts other selectors',
+        description: 'mixed direct assignments and API declarations',
         code: `
-          :root {
-            --Button-primary: #007bff;
-          }
-          .button {
-            --Button-secondary: red;
+          .container {
+            --any-internal-prop: value;
+            --Button-internal: red;
+            gap: var(--Button-spacing, 1rem);
+            margin: var(--Button-margin, 0);
           }
         `,
-      },
-      {
-        description: 'correct prefix in var() with fallback',
-        code: `.button { gap: var(--Button-spacing, 1rem); }`,
-      },
-      {
-        description: 'multiple var()',
-        code: `.button { border: var(--Button-borderWidth, 1px) var(--Button-borderStyle, solid); }`,
       },
     ],
     reject: [
       {
-        description: 'wrong prefix',
-        code: `.button { --wrong-color: red; }`,
+        description: 'wrong prefix in API declaration',
+        code: `.button { gap: var(--wrong-spacing, 1rem); }`,
         warnings: [
           {
-            message: messages.invalid('--wrong-color', '--Button', '--wrong'),
+            message: messages.invalid('--wrong-spacing', '--Button', '--wrong'),
           },
         ],
       },
       {
-        description: 'multiple var()',
-        code: `.button { border: var(--wrong-borderWidth, 1px) var(--Button-borderStyle, solid); }`,
+        description: 'multiple wrong prefixes in API declarations',
+        code: `.button { border: var(--wrong-borderWidth, 1px) var(--another-borderStyle, solid); }`,
         warnings: [
           {
             message: messages.invalid(
@@ -161,23 +141,21 @@ describe('rule implementation', () => {
               '--wrong',
             ),
           },
-        ],
-      },
-      {
-        description: 'no prefix',
-        code: `.button { --color: red; }`,
-        warnings: [
           {
-            message: messages.invalid('--color', '--Button', '--color'),
+            message: messages.invalid(
+              '--another-borderStyle',
+              '--Button',
+              '--another',
+            ),
           },
         ],
       },
       {
-        description: 'wrong prefix in var() with fallback',
-        code: `.button { gap: var(--wrong-spacing, 1rem); }`,
+        description: 'no prefix in API declaration',
+        code: `.button { gap: var(--spacing, 1rem); }`,
         warnings: [
           {
-            message: messages.invalid('--wrong-spacing', '--Button', '--wrong'),
+            message: messages.invalid('--spacing', '--Button', '--spacing'),
           },
         ],
       },
@@ -193,8 +171,8 @@ describe('rule implementation', () => {
     codeFilename: 'Component.module.css',
     reject: [
       {
-        description: 'custom property that only passes in suitcss',
-        code: `.button { --Component: red; }`,
+        description: 'API declaration that only passes in suitcss',
+        code: `.button { gap: var(--Component, 1rem); }`,
         warnings: [
           {
             message: messages.invalid(
@@ -216,13 +194,13 @@ describe('rule implementation', () => {
     accept: [
       {
         description: 'works with a custom regex',
-        code: `.button { --Component_test: red; }`,
+        code: `.button { gap: var(--Component_test, 1rem); }`,
       },
     ],
     reject: [
       {
         description: 'works with a custom regex',
-        code: `.button { --Component-test: red; }`,
+        code: `.button { gap: var(--Component-test, 1rem); }`,
         warnings: [
           {
             message: messages.invalid(
@@ -243,7 +221,7 @@ describe('rule implementation', () => {
     accept: [
       {
         description: 'works with the default option',
-        code: `.button { --Component-something: red; }`,
+        code: `.button { gap: var(--Component-something, 1rem); }`,
       },
     ],
   })
@@ -254,14 +232,14 @@ describe('rule implementation', () => {
     codeFilename: 'UserProfile.module.css',
     accept: [
       {
-        description: 'pascalcase component prefix',
-        code: `.profile { --UserProfile-avatar-size: 50px; }`,
+        description: 'pascalcase component prefix in API declaration',
+        code: `.profile { gap: var(--UserProfile-avatar-size, 50px); }`,
       },
     ],
     reject: [
       {
-        description: 'wrong component prefix',
-        code: `.profile { --Button-color: red; }`,
+        description: 'wrong component prefix in API declaration',
+        code: `.profile { gap: var(--Button-color, red); }`,
         warnings: [
           {
             message: messages.invalid(
@@ -276,13 +254,13 @@ describe('rule implementation', () => {
   })
 
   testRule({
-    description: 'filename warnings with property validation',
+    description: 'filename warnings with API declaration validation',
     config: true,
     codeFilename: 'user-profile.module.css',
     reject: [
       {
-        description: 'filename warning only (properties are valid)',
-        code: `.profile { --UserProfile-color: red; }`,
+        description: 'filename warning only (API declarations are valid)',
+        code: `.profile { gap: var(--UserProfile-color, red); }`,
         warnings: [
           {
             message: messages.filenameWarning('user-profile', 'UserProfile'),
@@ -290,8 +268,8 @@ describe('rule implementation', () => {
         ],
       },
       {
-        description: 'both filename and property issues',
-        code: `.profile { --wrong-color: red; }`,
+        description: 'both filename and API declaration issues',
+        code: `.profile { gap: var(--wrong-color, red); }`,
         warnings: [
           {
             message: messages.filenameWarning('user-profile', 'UserProfile'),
@@ -314,21 +292,7 @@ describe('rule implementation', () => {
     codeFilename: 'SomeComponent.module.css',
     reject: [
       {
-        description: 'fix wrong prefix',
-        code: `.button { --wrong-color: red; }`,
-        fixed: `.button { --SomeComponent-color: red; }`,
-        warnings: [
-          {
-            message: messages.invalid(
-              '--wrong-color',
-              '--SomeComponent',
-              '--wrong',
-            ),
-          },
-        ],
-      },
-      {
-        description: 'fix wrong prefix in var() with fallback',
+        description: 'fix wrong prefix in API declaration',
         code: `.container { gap: var(--wrong-spacing, 1rem); }`,
         fixed: `.container { gap: var(--SomeComponent-spacing, 1rem); }`,
         warnings: [
@@ -337,6 +301,27 @@ describe('rule implementation', () => {
               '--wrong-spacing',
               '--SomeComponent',
               '--wrong',
+            ),
+          },
+        ],
+      },
+      {
+        description: 'fix multiple wrong prefixes in API declaration',
+        code: `.container { border: var(--wrong-width, 1px) var(--bad-style, solid); }`,
+        fixed: `.container { border: var(--SomeComponent-width, 1px) var(--SomeComponent-style, solid); }`,
+        warnings: [
+          {
+            message: messages.invalid(
+              '--wrong-width',
+              '--SomeComponent',
+              '--wrong',
+            ),
+          },
+          {
+            message: messages.invalid(
+              '--bad-style',
+              '--SomeComponent',
+              '--bad',
             ),
           },
         ],

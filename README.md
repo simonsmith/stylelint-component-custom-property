@@ -18,9 +18,9 @@ Stylelint plugin that validates CSS custom properties in CSS modules to ensure t
   - [Disable the rule](#disable-the-rule)
 - [How it works](#how-it-works)
   - [What gets validated](#what-gets-validated)
-    - [Direct assignments](#direct-assignments)
-    - [Fallback declarations](#fallback-declarations)
-    - [What's ignored](#whats-ignored)
+    - [API declarations (validated)](#api-declarations-validated)
+    - [Private properties (ignored)](#private-properties-ignored)
+    - [Property consumption (ignored)](#property-consumption-ignored)
 - [Examples](#examples)
   - [Valid](#valid)
   - [Invalid](#invalid)
@@ -32,32 +32,26 @@ Stylelint plugin that validates CSS custom properties in CSS modules to ensure t
 
 ## Why?
 
-When working with CSS modules, it's common to use custom properties that are scoped to a specific component. This plugin enforces a naming convention where custom properties must be prefixed with the component name derived from the CSS module filename.
+When working with CSS modules, components often expose custom properties as a public API that can be overridden by parent components. This plugin validates that these **public** custom properties follow a consistent naming convention based on the component name.
 
-For example, if your CSS module is named `Button.module.css`, all custom properties should be prefixed with `--Button-`:
-
-```css
-.button {
-  --Button-primary-color: #007bff;
-  --Button-padding: 0.5rem 1rem;
-}
-```
-
-The validation is also applied to declaring custom properties with a fallback as this is seen as providing an API that is designed to be overridden:
+For example, if your CSS module is named `Button.module.css`:
 
 ```css
 .button {
+  /* Public API - validated */
   background-color: var(--Button-primary-color, #007bff);
+
+  /* Private properties - not validated */
+  --internal-state: active;
 }
 ```
-
-See [how it works](#how-it-works) for more
 
 This convention helps with:
 
-- **Consistency**: All custom properties follow the same naming pattern
-- **Clarity**: It's immediately clear which component a custom property belongs to
-- **Avoiding conflicts**: Prevents naming collisions when components are nested or used together, since CSS custom properties inherit through the DOM tree
+- **Consistency**: All public custom properties follow the same naming pattern
+- **Clarity**: It's immediately clear which properties are part of the component's public API
+- **Avoiding conflicts**: Prevents naming collisions when components are nested
+- **API documentation**: Fallback values serve as default values and documentation
 
 ## Installation
 
@@ -151,25 +145,15 @@ Use your own regular expression for suffix validation:
 The plugin:
 
 - **Only applies to CSS modules** - files ending with `.module.css`
-- **Validates custom properties** - ensures they start with `--ComponentName-`
-- **Autofix** - can automatically correct invalid prefixes
+- **Validates public API custom properties** - ensures they start with `--ComponentName-`
+- **Ignores private custom properties** - allows any naming for internal use
+- **Autofix** - can automatically correct invalid prefixes in API declarations
 
 ### What gets validated
 
-The plugin validates custom properties in two specific scenarios:
+The plugin validates custom properties only when they're used as **public API declarations**.
 
-#### Direct assignments
-
-Direct custom property usage is always validated:
-
-```css
-:root {
-  --Button-color: red;
-  --Button-padding: 1rem;
-}
-```
-
-#### Fallback declarations
+#### API declarations (validated)
 
 Custom properties used in `var()` functions **with fallback values** are treated as component API declarations:
 
@@ -180,22 +164,20 @@ Custom properties used in `var()` functions **with fallback values** are treated
 }
 ```
 
-This usage allows a user to override the custom properties from a parent
-component
+#### Private properties (ignored)
+
+Direct custom property assignments are considered private implementation details:
 
 ```css
-/* parent component can override `Button` spacing */
-.parent {
-  --Button-spacing: 2rem;
-  --Button-max-width: 400px;
+.button {
+  --internal-state: hover;
+  --computed-size: calc(100% - 2rem);
 }
 ```
 
-This distinction ensures the plugin only validates properties that are being "declared" as part of the component's API, rather than properties being consumed from elsewhere.
+#### Property consumption (ignored)
 
-#### What's ignored
-
-Custom properties used without fallbacks are considered consumption of existing properties and are ignored:
+Custom properties used without fallbacks are considered consumption of existing properties:
 
 ```css
 .button {
@@ -212,20 +194,23 @@ Custom properties used without fallbacks are considered consumption of existing 
 
 ```css
 .button {
-  --Button-primary-color: #007bff;
-  --Button-secondary-color: #6c757d;
-  --Button-padding: 0.5rem 1rem;
+  /* Public API declarations - validated */
+  background-color: var(--Button-primary-color, #007bff);
+  padding: var(--Button-padding, 0.5rem 1rem);
+
+  /* Private properties - not validated */
+  --internal-state: default;
+  --computed-width: calc(100% - 2rem);
+
+  /* Consuming existing properties - not validated */
+  margin: var(--global-spacing);
+  font-family: var(--theme-font);
 }
 
-/* Using existing custom properties is fine */
-.button {
-  color: var(--some-global-color);
-}
-
-/* API declarations with fallbacks are validated */
-.container {
-  gap: var(--Button-spacing, 1rem);
-  max-width: var(--Button-max-width, 320px);
+/* Overriding child component APIs - not validated */
+.button-container {
+  --Icon-size: 16px;
+  --Tooltip-background: var(--Button-primary-color);
 }
 ```
 
@@ -235,14 +220,11 @@ Custom properties used without fallbacks are considered consumption of existing 
 
 ```css
 .button {
-  --wrong-color: red; /* Should be --Button-color */
-  --color: blue; /* Should be --Button-color */
-}
+  /* Wrong prefix in API declaration */
+  background: var(--wrong-color, red);
 
-/* Invalid prefixes in var() with fallbacks */
-.container {
-  gap: var(--wrong-spacing, 1rem); /* Should be --Button-spacing */
-  width: var(--Container-width, 100%); /* Should be --Button-width */
+  /* No prefix in API declaration */
+  padding: var(--spacing, 1rem);
 }
 ```
 
@@ -254,13 +236,14 @@ If your CSS module filename isn't in PascalCase, you'll get a warning:
 
 ```css
 .profile {
-  --UserProfile-avatar-size: 50px; /* Valid property, but filename warning */
+  /* Valid API declaration, but filename warning */
+  gap: var(--UserProfile-avatar-size, 50px);
 }
 ```
 
 ## Autofix
 
-The plugin supports stylelint's `--fix` option and will automatically correct invalid custom property prefixes:
+The plugin supports stylelint's `--fix` option and will automatically correct invalid custom property prefixes in API declarations:
 
 ```bash
 stylelint "**/*.module.css" --fix
