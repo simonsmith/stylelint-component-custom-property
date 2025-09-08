@@ -1,3 +1,26 @@
+# [2.0.0](https://github.com/simonsmith/stylelint-component-custom-property/compare/1.0.1...2.0.0) (2025-09-08)
+
+
+### Code Refactoring
+
+* remove concept of "direct assignments" ([2cdf841](https://github.com/simonsmith/stylelint-component-custom-property/commit/2cdf84156105ec485efa079f79ac8c64439847b3))
+
+
+### BREAKING CHANGES
+
+* this was prevent legit use of custom properties to
+override children:
+
+```css
+.root {
+  position: relative;
+
+  --SomeChild-width: 960px;
+}
+```
+
+Instead we now just care about "API declarations"
+
 ## [1.0.1](https://github.com/simonsmith/stylelint-component-custom-property/compare/1.0.0...1.0.1) (2025-09-04)
 
 
