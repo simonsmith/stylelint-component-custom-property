@@ -228,19 +228,6 @@ Custom properties used without fallbacks are considered consumption of existing 
 }
 ```
 
-### Filename warnings
-
-If your CSS module filename isn't in PascalCase, you'll get a warning:
-
-**user-profile.module.css** (should be **UserProfile.module.css**)
-
-```css
-.profile {
-  /* Valid API declaration, but filename warning */
-  gap: var(--UserProfile-avatar-size, 50px);
-}
-```
-
 ## Autofix
 
 The plugin supports stylelint's `--fix` option and will automatically correct invalid custom property prefixes in API declarations:

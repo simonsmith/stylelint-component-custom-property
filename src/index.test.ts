@@ -78,6 +78,24 @@ describe('rule implementation', () => {
         code: `.button { color: red; background: blue; }`,
       },
       {
+        description: 'direct assignment (now ignored)',
+        code: `.button { --Button-color: red; }`,
+      },
+      {
+        description: 'direct assignment with wrong prefix (now ignored)',
+        code: `.button { --wrong-color: red; }`,
+      },
+      {
+        description: 'multiple direct assignments (now ignored)',
+        code: `
+          .button {
+            --Button-primary: #007bff;
+            --wrong-secondary: #6c757d;
+            --another-padding: 0.5rem 1rem;
+          }
+        `,
+      },
+      {
         description: 'API declarations with correct prefix',
         code: `
           .container {
@@ -162,9 +180,6 @@ describe('rule implementation', () => {
     ],
   })
 
-  // TODO: the messaging on this test is a bit weird. It probably needs some
-  // additional work to actually create something meaningful - but for now I've
-  // left it as is
   testRule({
     description: 'suitcss option',
     config: {validationType: 'suitcss'},
@@ -186,7 +201,6 @@ describe('rule implementation', () => {
     ],
   })
 
-  // TODO: this one also has bad error messaging for now - needs works
   testRule({
     description: 'custom regex option',
     config: {validationType: /^_[a-z][a-zA-Z]*$/},
@@ -254,26 +268,51 @@ describe('rule implementation', () => {
   })
 
   testRule({
-    description: 'filename warnings with API declaration validation',
+    description: 'files with acronyms and special casing',
     config: true,
-    codeFilename: 'user-profile.module.css',
+    codeFilename: 'PDFViewer.module.css',
+    accept: [
+      {
+        description: 'accepts API declarations with converted component name',
+        code: `.viewer { gap: var(--PdfViewer-zoom-level, 1); }`,
+      },
+      {
+        description: 'accepts direct assignments with any naming',
+        code: `.viewer { --PDF-internal: value; --any-name: value; }`,
+      },
+    ],
     reject: [
       {
-        description: 'filename warning only (API declarations are valid)',
-        code: `.profile { gap: var(--UserProfile-color, red); }`,
+        description: 'still validates API declarations correctly',
+        code: `.viewer { gap: var(--wrong-zoom, 1); }`,
         warnings: [
           {
-            message: messages.filenameWarning('user-profile', 'UserProfile'),
+            message: messages.invalid('--wrong-zoom', '--PdfViewer', '--wrong'),
           },
         ],
       },
+    ],
+  })
+
+  testRule({
+    description: 'kebab-case filenames',
+    config: true,
+    codeFilename: 'user-profile.module.css',
+    accept: [
       {
-        description: 'both filename and API declaration issues',
+        description: 'converts kebab-case to PascalCase for validation',
+        code: `.profile { gap: var(--UserProfile-avatar-size, 50px); }`,
+      },
+      {
+        description: 'allows any direct assignments',
+        code: `.profile { --user-profile-state: active; --any-name: value; }`,
+      },
+    ],
+    reject: [
+      {
+        description: 'validates API declarations with converted name',
         code: `.profile { gap: var(--wrong-color, red); }`,
         warnings: [
-          {
-            message: messages.filenameWarning('user-profile', 'UserProfile'),
-          },
           {
             message: messages.invalid(
               '--wrong-color',

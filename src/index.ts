@@ -15,8 +15,6 @@ const ruleName = '@simonsmith/stylelint-component-custom-property'
 const messages = ruleMessages(ruleName, {
   invalid: (property: string, expected: string, actual: string) =>
     `Custom property "${property}" should start with "${expected}" but starts with "${actual}"`,
-  filenameWarning: (filename: string, componentName: string) =>
-    `"${filename}" converted to PascalCase component name "${componentName}". This file should be renamed`,
   invalidSuitCss: (property: string, reason: string) =>
     `Custom property "${property}" does not follow SUIT CSS naming convention: ${reason}`,
 })
@@ -83,22 +81,8 @@ const ruleFunction: Rule = (primary: PluginConfig = true) => {
       return
     }
 
-    const {componentName, filename, isAlreadyValid} = componentInfo
+    const {componentName} = componentInfo
     const expectedPrefix = `--${componentName}`
-
-    // if the file name matches the component after we've 'pascaled' it then we
-    // can proceed but it's worth warning the user that they need to update the
-    // CSS filename
-    if (!isAlreadyValid) {
-      report({
-        result,
-        ruleName,
-        message: messages.filenameWarning(filename, componentName),
-        node: root,
-        severity: 'warning',
-      })
-    }
-
     const {validationType = 'default'} = config
 
     root.walkDecls((decl: Declaration) => {
@@ -137,12 +121,11 @@ function getComponentInfo(filepath: string) {
   }
 
   const filename = basename.replace('.module.css', '')
-  const pascalFilename = pascalCase(filename)
+  const componentName = pascalCase(filename)
 
   return {
     filename,
-    componentName: pascalFilename,
-    isAlreadyValid: pascalFilename === filename,
+    componentName,
   }
 }
 
